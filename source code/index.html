@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grandmaster 3D Chess by Abdul | FIDE World Standard Edition</title>
+  <meta name="description" content="Experience FIDE standard chess in breathtaking 3D with realistic Staunton pieces, AI engine, dynamic lighting, sound effects, and luxury themes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body class="theme-gold">
+  <!-- 3D Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- HUD Overlay -->
+  <div id="hud-overlay">
+    <!-- Top Navigation Bar -->
+    <header id="top-bar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 20h14M8 20V10l3-2 1-3 1 3 3 2v10M9 4h6"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="title">CHESS ROYALE 3D</span>
+          <span class="subtitle">Global FIDE Standard • By Abdul</span>
+        </div>
+      </div>
+
+      <!-- Quick Controls in Header -->
+      <div class="top-controls">
+        <!-- Game Mode Selector -->
+        <div class="control-group">
+          <label for="game-mode-select">Mode</label>
+          <select id="game-mode-select" class="hud-select">
+            <option value="ai" selected>Play vs AI</option>
+            <option value="local">Pass &amp; Play (2P)</option>
+            <option value="analysis">Analysis Board</option>
+          </select>
+        </div>
+
+        <!-- AI Difficulty (shown when vs AI) -->
+        <div class="control-group" id="ai-difficulty-group">
+          <label for="ai-level-select">AI Level</label>
+          <select id="ai-level-select" class="hud-select">
+            <option value="1">Beginner (800)</option>
+            <option value="2" selected>Intermediate (1400)</option>
+            <option value="3">Grandmaster (2000+)</option>
+          </select>
+        </div>
+
+        <!-- Time Control Selector -->
+        <div class="control-group">
+          <label for="time-control-select">Timer</label>
+          <select id="time-control-select" class="hud-select">
+            <option value="unlimited">Unlimited</option>
+            <option value="60">1 Min (Bullet)</option>
+            <option value="180">3 Min (Blitz)</option>
+            <option value="300" selected>5 Min (Blitz)</option>
+            <option value="600">10 Min (Rapid)</option>
+            <option value="900">15 Min (Rapid)</option>
+          </select>
+        </div>
+
+        <!-- Theme Selector -->
+        <div class="control-group">
+          <label for="theme-select">Theme</label>
+          <select id="theme-select" class="hud-select">
+            <option value="gold" selected>Royal Gold &amp; Silver</option>
+            <option value="wood">Walnut &amp; Maple</option>
+            <option value="marble">Imperial Marble</option>
+            <option value="neon">Cyber Neon 2077</option>
+          </select>
+        </div>
+
+        <!-- Camera Views -->
+        <div class="control-group">
+          <label>Camera</label>
+          <div class="camera-btn-group">
+            <button id="cam-3d-btn" class="cam-btn active" title="3D Dynamic View">3D</button>
+            <button id="cam-top-btn" class="cam-btn" title="Top-Down Tactical View">2D</button>
+            <button id="cam-white-btn" class="cam-btn" title="White Perspective">W</button>
+            <button id="cam-black-btn" class="cam-btn" title="Black Perspective">B</button>
+          </div>
+        </div>
+
+        <!-- Action Icons -->
+        <div class="header-actions">
+          <button id="sound-toggle-btn" class="icon-btn active" title="Toggle Sound (M)">
+            <svg class="icon-sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            </svg>
+            <svg class="icon-sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <line x1="23" y1="9" x2="17" y2="15"/>
+              <line x1="17" y1="9" x2="23" y2="15"/>
+            </svg>
+          </button>
+          <button id="rules-btn" class="icon-btn" title="Chess Rules &amp; Hotkeys (?)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </button>
+          <button id="fullscreen-btn" class="icon-btn" title="Toggle Fullscreen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Playing Area HUD -->
+    <main id="game-workspace">
+      <!-- Left Side: Players & Evaluation Bar -->
+      <aside id="players-panel">
+        <!-- Black Player Card -->
+        <div id="player-black-card" class="player-card">
+          <div class="player-header">
+            <div class="player-avatar black-avatar">
+              <span id="black-avatar-icon">♟</span>
+            </div>
+            <div class="player-info">
+              <div class="player-name-row">
+                <span id="black-player-name" class="player-name">Stockfish AI</span>
+                <span id="black-rating-tag" class="rating-badge">1400</span>
+              </div>
+              <div class="captured-tray" id="black-captured-tray">
+                <!-- Captured white pieces appear here -->
+              </div>
+            </div>
+            <div class="player-clock-box">
+              <span id="black-clock" class="player-clock">05:00</span>
+              <span id="black-lead-badge" class="lead-badge"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evaluation / Turn Status Widget -->
+        <div id="status-widget">
+          <div class="turn-status-container">
+            <div class="turn-indicator-dot" id="turn-dot"></div>
+            <span id="turn-text" class="turn-text">White to move</span>
+            <button id="btn-claim-draw" class="claim-draw-btn hidden" title="Claim legal draw per FIDE rules">Claim Draw</button>
+          </div>
+
+          <!-- Evaluation Meter Bar -->
+          <div class="eval-meter-container" title="Position Evaluation Bar">
+            <div class="eval-meter-track">
+              <div id="eval-meter-fill" class="eval-meter-fill"></div>
+            </div>
+            <span id="eval-score" class="eval-score">0.0</span>
+          </div>
+
+          <div id="ai-status-indicator" class="ai-status-indicator">
+            <div class="spinner"></div>
+            <span>AI is calculating...</span>
+          </div>
+        </div>
+
+        <!-- White Player Card -->
+        <div id="player-white-card" class="player-card active-turn">
+          <div class="player-header">
+            <div class="player-avatar white-avatar">
+              <span id="white-avatar-icon">♙</span>
+            </div>
+            <div class="player-info">
+              <div class="player-name-row">
+                <span id="white-player-name" class="player-name">Player (White)</span>
+                <span id="white-rating-tag" class="rating-badge">YOU</span>
+              </div>
+              <div class="captured-tray" id="white-captured-tray">
+                <!-- Captured black pieces appear here -->
+              </div>
+            </div>
+            <div class="player-clock-box">
+              <span id="white-clock" class="player-clock">05:00</span>
+              <span id="white-lead-badge" class="lead-badge"></span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center: 3D Viewport is the background canvas. Center bottom has Game Controls -->
+      <div id="floating-actions-bar">
+        <button id="btn-new-game" class="action-btn primary" title="Start a fresh match">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/>
+          </svg>
+          <span>New Game</span>
+        </button>
+
+        <button id="btn-undo-move" class="action-btn" title="Undo Last Move (U / Ctrl+Z)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7v6h6"/>
+            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+          </svg>
+          <span>Undo</span>
+        </button>
+
+        <button id="btn-redo-move" class="action-btn" title="Redo Move (Y / Ctrl+Y)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 7v6h-6"/>
+            <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/>
+          </svg>
+          <span>Redo</span>
+        </button>
+
+        <button id="btn-ai-hint" class="action-btn" title="Request Engine Hint (H)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7zM9 21h6"/>
+          </svg>
+          <span>Hint</span>
+        </button>
+
+        <button id="btn-flip-board" class="action-btn" title="Flip Board Perspective (F)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M7 16V4m0 0L3 8m4-4l4 4m6 4v12m0 0l4-4m-4 4l-4-4"/>
+          </svg>
+          <span>Flip</span>
+        </button>
+
+        <button id="btn-toggle-history" class="action-btn" title="Toggle Move History Panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"/>
+            <line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/>
+            <line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+          <span>Moves</span>
+        </button>
+
+        <button id="btn-more-options" class="action-btn" title="Settings &amp; Tools">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span>Tools</span>
+        </button>
+      </div>
+
+      <!-- Floating Zoom Controls Widget -->
+      <div id="zoom-widget" class="floating-zoom-widget">
+        <button id="btn-zoom-in" class="zoom-btn" title="Zoom In (+)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <button id="btn-zoom-out" class="zoom-btn" title="Zoom Out (-)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <button id="btn-zoom-reset" class="zoom-btn" title="Reset Camera View (0)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right Side: Move History Panel -->
+      <aside id="history-panel" class="history-panel">
+        <div class="history-header">
+          <div class="history-title-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <span>Move Notation</span>
+          </div>
+          <button id="btn-close-history" class="close-icon-btn" title="Close Panel">&times;</button>
+        </div>
+
+        <!-- History Moves Table -->
+        <div class="history-scroll-container">
+          <table class="moves-table" id="moves-table">
+            <thead>
+              <tr>
+                <th class="col-num">#</th>
+                <th class="col-white">White</th>
+                <th class="col-black">Black</th>
+              </tr>
+            </thead>
+            <tbody id="moves-table-body">
+              <!-- Dynamically populated move rows -->
+            </tbody>
+          </table>
+          <div id="empty-history-notice" class="empty-history-notice">
+            Moves will be recorded in FIDE standard algebraic notation.
+          </div>
+        </div>
+
+        <!-- Replay Navigation Controls -->
+        <div class="history-navigation-bar">
+          <button id="nav-first-btn" class="nav-btn" title="Jump to start (|&lt;)">&laquo;</button>
+          <button id="nav-prev-btn" class="nav-btn" title="Previous move (&lt;)">&lsaquo;</button>
+          <button id="nav-next-btn" class="nav-btn" title="Next move (&gt;)">&rsaquo;</button>
+          <button id="nav-last-btn" class="nav-btn" title="Current move (&gt;|)">&raquo;</button>
+        </div>
+
+        <!-- History Footer Utility Buttons -->
+        <div class="history-footer-actions">
+          <button id="btn-copy-fen" class="mini-btn" title="Copy Current FEN String">
+            <span>Copy FEN</span>
+          </button>
+          <button id="btn-export-pgn" class="mini-btn" title="Export PGN Game File">
+            <span>Export PGN</span>
+          </button>
+          <button id="btn-load-fen" class="mini-btn" title="Import Custom FEN / Puzzle">
+            <span>Load FEN</span>
+          </button>
+        </div>
+      </aside>
+    </main>
+
+    <!-- In-Game Notification Banner -->
+    <div id="game-toast" class="game-toast">
+      <span id="toast-message">Welcome to Grandmaster 3D Chess!</span>
+    </div>
+  </div>
+
+  <!-- Pawn Promotion Modal -->
+  <div id="promotion-modal" class="modal-overlay hidden">
+    <div class="modal-card promotion-card">
+      <h3 class="modal-title">Promote Pawn</h3>
+      <p class="modal-subtitle">Choose your promotion piece per standard FIDE regulations</p>
+      <div class="promotion-choices">
+        <button class="promo-choice-btn" data-piece="q" title="Queen (Hot-key: Q)">
+          <div class="promo-piece-icon">♛</div>
+          <span class="promo-name">Queen</span>
+          <span class="promo-key">Q</span>
+        </button>
+        <button class="promo-choice-btn" data-piece="r" title="Rook (Hot-key: R)">
+          <div class="promo-piece-icon">♜</div>
+          <span class="promo-name">Rook</span>
+          <span class="promo-key">R</span>
+        </button>
+        <button class="promo-choice-btn" data-piece="b" title="Bishop (Hot-key: B)">
+          <div class="promo-piece-icon">♝</div>
+          <span class="promo-name">Bishop</span>
+          <span class="promo-key">B</span>
+        </button>
+        <button class="promo-choice-btn" data-piece="n" title="Knight (Hot-key: N)">
+          <div class="promo-piece-icon">♞</div>
+          <span class="promo-name">Knight</span>
+          <span class="promo-key">N</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Modal -->
+  <div id="game-over-modal" class="modal-overlay hidden">
+    <div class="modal-card game-over-card">
+      <div class="victory-icon" id="game-over-icon">🏆</div>
+      <h2 class="game-over-title" id="game-over-title">Checkmate!</h2>
+      <p class="game-over-reason" id="game-over-reason">White wins by checkmate.</p>
+
+      <div class="game-stats-grid">
+        <div class="stat-box">
+          <span class="stat-label">Total Moves</span>
+          <span class="stat-val" id="stat-moves">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Match Time</span>
+          <span class="stat-val" id="stat-time">00:00</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Result Code</span>
+          <span class="stat-val" id="stat-result">1 - 0</span>
+        </div>
+      </div>
+
+      <div class="modal-actions-row">
+        <button id="modal-rematch-btn" class="modal-btn primary">Play Again</button>
+        <button id="modal-review-btn" class="modal-btn secondary">Review Board</button>
+        <button id="modal-pgn-btn" class="modal-btn tertiary">Save PGN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tools / Extra Options Modal -->
+  <div id="tools-modal" class="modal-overlay hidden">
+    <div class="modal-card tools-card">
+      <div class="modal-header-row">
+        <h3>Match Tools &amp; Actions</h3>
+        <button class="modal-close-btn" id="btn-close-tools">&times;</button>
+      </div>
+      <div class="tools-list">
+        <button id="tool-resign-btn" class="tool-btn danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>
+          </svg>
+          <div class="tool-text">
+            <strong>Resign Game</strong>
+            <span>Concede the current match to opponent</span>
+          </div>
+        </button>
+
+        <button id="tool-draw-btn" class="tool-btn warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+          <div class="tool-text">
+            <strong>Offer / Claim Draw</strong>
+            <span>Conclude game as a mutual draw</span>
+          </div>
+        </button>
+
+        <button id="tool-auto-rotate-btn" class="tool-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/>
+          </svg>
+          <div class="tool-text">
+            <strong>Auto-Flip Board on Turn</strong>
+            <span id="auto-flip-status">Disabled (Click to Enable)</span>
+          </div>
+        </button>
+
+        <button id="tool-camera-reset-btn" class="tool-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          <div class="tool-text">
+            <strong>Reset 3D Camera Angle</strong>
+            <span>Return to original dynamic perspective</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom FEN Import Modal -->
+  <div id="fen-modal" class="modal-overlay hidden">
+    <div class="modal-card fen-card">
+      <div class="modal-header-row">
+        <h3>Load Custom Position (FEN)</h3>
+        <button class="modal-close-btn" id="btn-close-fen">&times;</button>
+      </div>
+      <p class="modal-subtitle">Paste any valid Forsyth-Edwards Notation string:</p>
+      <input type="text" id="fen-input" class="fen-text-input" placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" spellcheck="false">
+      <div id="fen-error-msg" class="fen-error-msg hidden">Invalid FEN position string.</div>
+      <div class="modal-actions-row">
+        <button id="fen-submit-btn" class="modal-btn primary">Load Board</button>
+        <button id="fen-cancel-btn" class="modal-btn secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules & Help Modal -->
+  <div id="rules-modal" class="modal-overlay hidden">
+    <div class="modal-card rules-card">
+      <div class="modal-header-row">
+        <h3>FIDE Chess Standards &amp; Controls</h3>
+        <button class="modal-close-btn" id="btn-close-rules">&times;</button>
+      </div>
+      <div class="rules-content">
+        <section class="rules-section">
+          <h4>FIDE Tournament Standard Rules</h4>
+          <ul>
+            <li><strong>Legal Moves Only:</strong> Pieces can only make FIDE-legal moves. Moves that expose or fail to defend your King from check are forbidden.</li>
+            <li><strong>Castling (O-O / O-O-O):</strong> Allowed if neither King nor chosen Rook has moved, no pieces intervene, and the King does not castle out of, through, or into check.</li>
+            <li><strong>En Passant:</strong> If an opposing pawn advances two squares on its initial move and lands adjacent to your pawn, you may capture it diagonally on the very next turn.</li>
+            <li><strong>Pawn Promotion:</strong> Reaching the 8th rank immediately opens the promotion selector (Queen, Rook, Bishop, Knight).</li>
+            <li><strong>Draw Conditions:</strong> Stalemate, 50-move rule without pawn push or capture, 3-fold position repetition, or insufficient mating material.</li>
+          </ul>
+        </section>
+
+        <section class="rules-section">
+          <h4>3D Controls &amp; Shortcuts</h4>
+          <div class="shortcuts-grid">
+            <div class="shortcut-item"><kbd>Left Mouse Click</kbd> <span>Select piece / Target square</span></div>
+            <div class="shortcut-item"><kbd>Mouse Drag</kbd> <span>Orbit &amp; Rotate 3D Camera</span></div>
+            <div class="shortcut-item"><kbd>Mouse Scroll</kbd> <span>Zoom In / Out</span></div>
+            <div class="shortcut-item"><kbd>Right Drag</kbd> <span>Pan Camera</span></div>
+            <div class="shortcut-item"><kbd>U</kbd> <span>Undo Last Move (Ctrl+Z)</span></div>
+            <div class="shortcut-item"><kbd>Y</kbd> <span>Redo Move (Ctrl+Y)</span></div>
+            <div class="shortcut-item"><kbd>H</kbd> <span>Get AI Hint</span></div>
+            <div class="shortcut-item"><kbd>F</kbd> <span>Flip Board</span></div>
+            <div class="shortcut-item"><kbd>M</kbd> <span>Mute / Unmute Audio</span></div>
+            <div class="shortcut-item"><kbd>1 - 4</kbd> <span>Camera View Presets</span></div>
+            <div class="shortcut-item"><kbd>Esc</kbd> <span>Deselect Piece / Close Modals</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- External CDNs with high-reliability mirrors -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Application Logic -->
+  <script src="./script.js"></script>
+</body>
+</html>
