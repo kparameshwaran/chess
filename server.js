@@ -2,8 +2,10 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 3000;
-const PUBLIC_DIR = path.join(__dirname, 'source code');
+const PORT = process.env.PORT || 3000;
+const PUBLIC_DIR = fs.existsSync(path.join(__dirname, 'index.html'))
+  ? __dirname
+  : path.join(__dirname, 'source code');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',

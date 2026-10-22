@@ -2,6 +2,9 @@
 
 A tournament-grade, breathtaking 3D WebGL Chess experience built with **Three.js**, **chess.js**, **GSAP**, and the **Web Audio API**. Strictly compliant with international **FIDE Laws of Chess**, featuring intelligent AI opponents, multiple camera perspectives, real-time evaluation, luxury PBR themes, and authentic Staunton piece models.
 
+### 🌐 Play Live on GitHub Pages
+👉 **[Launch Chess Royale 3D](https://kparameshwaran.github.io/chess/)**
+
 ---
 
 ## 🌟 Key Features
